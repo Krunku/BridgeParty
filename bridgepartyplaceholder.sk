@@ -1,0 +1,189 @@
+on papi placeholder request for the prefix "bedfight":
+
+    #
+    # Blocks
+    #
+    if the identifier is "blocks":
+        if {bedfight.blocks::%player's uuid%} is set:
+            set the result to "%{bedfight.blocks::%player's uuid%}%"
+        else:
+            set the result to "0"
+
+    #
+    # Team
+    #
+    else if the identifier is "team":
+        if {bedfight.team.%player's uuid%} is "red":
+            set the result to "Red"
+        else if {bedfight.team.%player's uuid%} is "blue":
+            set the result to "Blue"
+        else:
+            set the result to "None"
+
+    #
+    # Team Counts
+    #
+    else if the identifier is "redcount":
+        set {_count} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "red":
+                add 1 to {_count}
+        set the result to "%{_count}%"
+
+    else if the identifier is "bluecount":
+        set {_count} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "blue":
+                add 1 to {_count}
+        set the result to "%{_count}%"
+
+    #
+    # Red Team Player 1
+    #
+    else if the identifier is "red1":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "red":
+                add 1 to {_i}
+                if {_i} is 1:
+                    set the result to "%loop-player%"
+                    stop
+
+    #
+    # Red Team Player 2
+    #
+    else if the identifier is "red2":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "red":
+                add 1 to {_i}
+                if {_i} is 2:
+                    set the result to "%loop-player%"
+                    stop
+
+    #
+    # Blue Team Player 1
+    #
+    else if the identifier is "blue1":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "blue":
+                add 1 to {_i}
+                if {_i} is 1:
+                    set the result to "%loop-player%"
+                    stop
+
+    #
+    # Blue Team Player 2
+    #
+    else if the identifier is "blue2":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "blue":
+                add 1 to {_i}
+                if {_i} is 2:
+                    set the result to "%loop-player%"
+                    stop
+
+    else if the identifier is "red3":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "red":
+                add 1 to {_i}
+                if {_i} is 3:
+                    set the result to "%loop-player%"
+                    stop
+    else if the identifier is "red4":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "red":
+                add 1 to {_i}
+                if {_i} is 4:
+                    set the result to "%loop-player%"
+                    stop
+
+    else if the identifier is "red5":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "red":
+                add 1 to {_i}
+                if {_i} is 5:
+                    set the result to "%loop-player%"
+                    stop
+    else if the identifier is "blue3":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "blue":
+                add 1 to {_i}
+                if {_i} is 3:
+                    set the result to "%loop-player%"
+                    stop
+
+    else if the identifier is "blue4":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "blue":
+                add 1 to {_i}
+                if {_i} is 4:
+                    set the result to "%loop-player%"
+                    stop
+    else if the identifier is "blue5":
+        set the result to "&7-"
+        set {_i} to 0
+        loop all players:
+            if {bedfight.team.%loop-player's uuid%} is "blue":
+                add 1 to {_i}
+                if {_i} is 5:
+                    set the result to "%loop-player%"
+                    stop
+    else if the identifier is "mode":
+        if {bedfight.toggle.%player's uuid%} is 2:
+            set the result to "Clutch"
+        else:
+            set the result to "Bridge"
+            
+    else if the identifier is "streak":
+        set {_uuid} to uuid of player
+    
+        if {bedfight.streak::%{_uuid}%} is set:
+            set the result to "%{bedfight.streak::%{_uuid}%}%"
+        else:
+            set the result to "0"
+            
+    else if the identifier is "top1":
+        if {bedfight.top1.name} is set:
+            set the result to "&b%{bedfight.top1.name}% &7- &a%{bedfight.top1.score}%"
+        else:
+            set the result to "&7None"
+
+
+    else if the identifier is "top2":
+        if {bedfight.top2.name} is set:
+            set the result to "&b%{bedfight.top2.name}% &7- &a%{bedfight.top2.score}%"
+        else:
+            set the result to "&7None"
+
+
+    else if the identifier is "top3":
+        if {bedfight.top3.name} is set:
+            set the result to "&b%{bedfight.top3.name}% &7- &a%{bedfight.top3.score}%"
+        else:
+            set the result to "&7None"
+            
+    else if the identifier is "beststreak":
+        if {bedfight.beststreak::%player's uuid%} is set:
+            set the result to "&a%{bedfight.beststreak::%player's uuid%}%"
+        else:
+            set the result to "&70"
+            
+                    
+    

@@ -1,0 +1,1559 @@
+options:
+
+    world: bedfightpractice
+
+    void-height: 102
+
+    minimum-blocks: 15
+
+
+
+#
+
+# ===========================
+
+#      SET SPAWNS
+
+# ===========================
+
+#
+
+
+
+command /setredspawn:
+
+    permission: op
+
+    trigger:
+
+        if player's world is world("{@world}"):
+
+            add location of player to {bedfight.redspawns::*}
+
+            send "&aAdded Red Spawn %size of {bedfight.redspawns::*}%."
+
+
+
+command /setbluespawn:
+
+    permission: op
+
+    trigger:
+
+        if player's world is world("{@world}"):
+
+            add location of player to {bedfight.bluespawns::*}
+
+            send "&aAdded Blue Spawn %size of {bedfight.bluespawns::*}%."
+
+
+
+command /setredfinish1:
+
+    permission: op
+
+    trigger:
+
+        set {bedfight.redfinish.1} to location of player
+
+        send "&cRed finish position 1 set."
+
+
+
+command /setredfinish2:
+
+    permission: op
+
+    trigger:
+
+        set {bedfight.redfinish.2} to location of player
+
+        send "&cRed finish position 2 set."
+
+
+
+command /setbluefinish1:
+
+    permission: op
+
+    trigger:
+
+        set {bedfight.bluefinish.1} to location of player
+
+        send "&9Blue finish position 1 set."
+
+
+
+command /setbluefinish2:
+
+    permission: op
+
+    trigger:
+
+        set {bedfight.bluefinish.2} to location of player
+
+        send "&9Blue finish position 2 set."
+
+
+
+#
+
+# ===========================
+
+#      JOIN COMMAND
+
+# ===========================
+
+#
+
+
+
+command /joinbedfight:
+
+    trigger:
+
+
+
+        if {bedfight.redspawns::*} is not set:
+
+            send "&cRed spawn has not been set."
+
+            stop
+
+
+
+        if {bedfight.bluespawns::*} is not set:
+
+            send "&cBlue spawn has not been set."
+
+            stop
+
+
+
+        teleport player to world "{@world}"
+
+        wait 1 tick
+
+
+
+        # Assign a team only if the player doesn't already have one.
+
+        if {bedfight.team.%player's uuid%} is not set:
+
+
+
+            set {_red} to 0
+
+            set {_blue} to 0
+
+
+
+            loop all players:
+
+                if loop-player's world is world("{@world}"):
+
+
+
+                    if {bedfight.team.%loop-player's uuid%} is "red":
+
+                        add 1 to {_red}
+
+                    else if {bedfight.team.%loop-player's uuid%} is "blue":
+
+                        add 1 to {_blue}
+
+
+
+            if {_red} <= {_blue}:
+
+                set {bedfight.team.%player's uuid%} to "red"
+
+            else:
+
+                set {bedfight.team.%player's uuid%} to "blue"
+
+
+
+        clear player's inventory
+
+
+
+        if {bedfight.team.%player's uuid%} is "red":
+
+            set {_spawn} to random element out of {bedfight.redspawns::*}
+
+            teleport player to {_spawn}
+
+            send "&cYou joined the Red Team!"
+
+            set slot 0 of player to 64 red wool
+
+        else:
+
+            set {_spawn} to random element out of {bedfight.bluespawns::*}
+
+            teleport player to {_spawn}
+
+            send "&9You joined the Blue Team!"
+
+            set slot 0 of player to 64 blue wool
+
+        set slot 1 of player to shears named "&f&lShears"
+
+        set slot 3 of player to stick named "&c&lSwitch to Clutch"
+
+        set slot 4 of player to paper named "&e&lSwitch Teams"
+
+        set slot 8 of player to red dye named "&c&lReturn to FastBuilder"
+
+        delete {bedfight.start::%player's uuid%}
+        delete {bedfight.sessiontime::%player's uuid%}
+
+        delete {bedfight.finished::%player's uuid%}
+
+        set {bedfight.blocks::%player's uuid%} to 0
+
+
+
+        set food level of player to 20
+
+        set player's gamemode to survival
+
+
+
+#
+
+# ===========================
+
+#      CLEANUP
+
+# ===========================
+
+#
+
+
+
+on quit:
+
+    loop {bridgeblocks::%player's uuid%::*}:
+
+        set block at loop-value to air
+
+
+
+    delete {bridgeblocks::%player's uuid%::*}
+
+    delete {voidcooldown::%player's uuid%}
+
+    delete {bedfight.team.%player's uuid%}
+
+    delete {bedfight.toggle.%player's uuid%}
+
+    delete {bedfight.blocks::%player's uuid%}
+
+    delete {bedfight.streak::%player's uuid%}
+    delete {bedfight.start::%player's uuid%}
+    delete {bedfight.sessiontime::%player's uuid%}
+
+
+
+#
+
+# ===========================
+
+#      BLOCK PLACING
+
+# ===========================
+
+#
+
+
+
+on place:
+
+    if player's world is world("{@world}"):
+
+
+
+        add location of event-block to {bridgeblocks::%player's uuid%::*}
+
+        add 1 to {bedfight.blocks::%player's uuid%}
+        if {bedfight.start::%player's uuid%} is not set:
+            set {bedfight.start::%player's uuid%} to now
+
+
+
+        if {bedfight.team.%player's uuid%} is "red":
+
+            set event-block to red wool
+
+        else:
+
+            set event-block to blue wool
+
+        set {_loc} to location of event-block
+
+
+
+        wait 10 seconds
+
+
+
+        if block at {_loc} is wool:
+
+            set block at {_loc} to air
+
+
+
+#
+
+# ===========================
+
+#   PREVENT BLOCK BREAKING
+
+# ===========================
+
+#
+
+
+
+on break:
+
+    if player's world is not world("{@world}"):
+
+        stop
+
+
+
+    # Only allow shears
+
+    if player's tool is not shears:
+
+        cancel event
+
+        stop
+
+
+
+    # Allow breaking practice blocks
+
+        if event-block is red wool
+        or event-block is blue wool
+        or event-block is end stone
+        or event-block is wood
+
+    		# Allowed
+        else:
+            cancel event
+            stop
+
+
+
+    # Don't let players break the original map
+
+    set {_found} to false
+
+
+
+    loop {bridgeblocks::%player's uuid%::*}:
+
+        if loop-value is location of event-block:
+
+            set {_found} to true
+
+            stop loop
+
+
+
+    if {_found} is false:
+
+        cancel event
+
+        stop
+
+
+
+    remove location of event-block from {bridgeblocks::%player's uuid%::*}
+
+    set event-block to air
+
+    
+
+
+
+#
+
+# ===========================
+
+#      RESET ITEM
+
+# ===========================
+
+#
+
+
+
+on right click:
+
+    if player's world is not world("{@world}"):
+
+        stop
+
+
+
+    if player's tool is stick:
+
+        cancel event
+
+
+
+        if {bedfight.toggle.%player's uuid%} is not set:
+
+            set {bedfight.toggle.%player's uuid%} to 1
+
+
+
+        #
+
+        # Switch to BedClutch
+
+        #
+
+        if {bedfight.toggle.%player's uuid%} is 1:
+
+
+
+            if {bedfight.team.%player's uuid%} is "red":
+
+                execute player command "bedclutch join 1"
+
+            else if {bedfight.team.%player's uuid%} is "blue":
+
+                execute player command "bedclutch join 2"
+
+            else:
+
+                send "&cYou are not on a team."
+
+                stop
+
+
+
+            set {bedfight.toggle.%player's uuid%} to 2
+
+            stop
+
+
+
+        #
+
+        # Switch back to BedFight
+
+        #
+
+        if {bedfight.toggle.%player's uuid%} is 2:
+
+            execute player command "bedclutch leave"
+
+
+
+            set velocity of player to vector(0, 0, 0)
+
+            set fall distance of player to 0
+
+
+
+            wait 2 ticks
+
+
+
+            execute player command "joinbedfight"
+
+
+
+            set velocity of player to vector(0, 0, 0)
+
+            set fall distance of player to 0
+
+
+
+            set {bedfight.toggle.%player's uuid%} to 1
+
+
+
+
+
+
+
+#
+
+# ===========================
+
+#      VOID RESET
+
+# ===========================
+
+#
+
+
+
+every 1 tick:
+
+    loop all players:
+
+
+
+        if loop-player's world is world("{@world}"):
+
+            if {bedfight.blocks::%loop-player's uuid%} >= {@minimum-blocks}:
+
+
+
+                if y-coordinate of loop-player > {@void-height}:
+
+
+
+                    if {bedfight.team.%loop-player's uuid%} is "red":
+
+
+
+                        set {_l} to location of loop-player
+
+                        set {_p1} to {bedfight.bluefinish.1}
+
+                        set {_p2} to {bedfight.bluefinish.2}
+
+
+
+                        set {_minX} to x-coordinate of {_p1}
+
+                        set {_maxX} to x-coordinate of {_p2}
+
+                        if {_minX} > {_maxX}:
+
+                            set {_temp} to {_minX}
+
+                            set {_minX} to {_maxX}
+
+                            set {_maxX} to {_temp}
+
+
+
+                        set {_minY} to y-coordinate of {_p1}
+
+                        set {_maxY} to y-coordinate of {_p2}
+
+                        if {_minY} > {_maxY}:
+
+                            set {_temp} to {_minY}
+
+                            set {_minY} to {_maxY}
+
+                            set {_maxY} to {_temp}
+
+
+
+                        set {_minZ} to z-coordinate of {_p1}
+
+                        set {_maxZ} to z-coordinate of {_p2}
+
+                        if {_minZ} > {_maxZ}:
+
+                            set {_temp} to {_minZ}
+
+                            set {_minZ} to {_maxZ}
+
+                            set {_maxZ} to {_temp}
+
+
+
+                        if x-coordinate of {_l} >= {_minX}:
+
+                            if x-coordinate of {_l} <= {_maxX}:
+
+                                if y-coordinate of {_l} >= {_minY}:
+
+                                    if y-coordinate of {_l} <= {_maxY}:
+
+                                        if z-coordinate of {_l} >= {_minZ}:
+
+                                            if z-coordinate of {_l} <= {_maxZ}:
+
+                                                if {bedfight.finished::%loop-player's uuid%} is not "blue":
+
+                                                    set {bedfight.finished::%loop-player's uuid%} to "blue"
+
+                                                    set {bedfight.blocks::%loop-player's uuid%} to 0
+
+                                                    set {_time} to difference between now and {bedfight.start::%loop-player's uuid%}
+                                                    set {bedfight.sessiontime::%loop-player's uuid%} to {_time}
+                                                    delete {bedfight.start::%loop-player's uuid%}
+                                                    if {bedfight.besttime::%loop-player's uuid%} is not set:
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+                                                    else if {_time} < {bedfight.besttime::%loop-player's uuid%}:
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+
+
+                                                    if {bedfight.beststreak::%loop-player's uuid%} is not set:
+
+                                                        set {bedfight.beststreak::%loop-player's uuid%} to {bedfight.streak::%loop-player's uuid%}
+
+
+
+                                                    else if {bedfight.streak::%loop-player's uuid%} > {bedfight.beststreak::%loop-player's uuid%}:
+
+                                                        set {bedfight.beststreak::%loop-player's uuid%} to {bedfight.streak::%loop-player's uuid%}
+
+                                                    loop {bridgeblocks::%loop-player's uuid%::*}:
+
+                                                        set block at loop-value-2 to air
+
+                                                    delete {bridgeblocks::%loop-player's uuid%::*}
+
+
+
+                                                    set {bedfight.sessionstreak::%loop-player's uuid%} to {bedfight.streak::%loop-player's uuid%}
+
+                                                    set {bedfight.sessionname::%loop-player's uuid%} to loop-player's name
+
+
+
+                                                    send title "&a&l%{_time}%" with subtitle "&bReached the other side" to loop-player
+
+                                                    play sound "LEVEL_UP" with volume 1 and pitch 1.2 to loop-player
+
+                        set {_p1} to {bedfight.redfinish.1}
+
+                        set {_p2} to {bedfight.redfinish.2}
+
+
+
+                        # Recalculate min/max
+
+                        set {_minX} to x-coordinate of {_p1}
+
+                        set {_maxX} to x-coordinate of {_p2}
+
+                        if {_minX} > {_maxX}:
+
+                            set {_temp} to {_minX}
+
+                            set {_minX} to {_maxX}
+
+                            set {_maxX} to {_temp}
+
+
+
+                        set {_minY} to y-coordinate of {_p1}
+
+                        set {_maxY} to y-coordinate of {_p2}
+
+                        if {_minY} > {_maxY}:
+
+                            set {_temp} to {_minY}
+
+                            set {_minY} to {_maxY}
+
+                            set {_maxY} to {_temp}
+
+
+
+                        set {_minZ} to z-coordinate of {_p1}
+
+                        set {_maxZ} to z-coordinate of {_p2}
+
+                        if {_minZ} > {_maxZ}:
+
+                            set {_temp} to {_minZ}
+
+                            set {_minZ} to {_maxZ}
+
+                            set {_maxZ} to {_temp}
+
+
+
+                        if x-coordinate of {_l} >= {_minX}:
+
+                            if x-coordinate of {_l} <= {_maxX}:
+
+                                if y-coordinate of {_l} >= {_minY}:
+
+                                    if y-coordinate of {_l} <= {_maxY}:
+
+                                        if z-coordinate of {_l} >= {_minZ}:
+
+                                            if z-coordinate of {_l} <= {_maxZ}:
+
+                                                if {bedfight.finished::%loop-player's uuid%} is "blue":
+
+                                                    set {bedfight.finished::%loop-player's uuid%} to "red"
+
+                                                    set {bedfight.blocks::%loop-player's uuid%} to 0
+
+                                                    set {_time} to difference between now and {bedfight.start::%loop-player's uuid%}
+                                                    set {bedfight.sessiontime::%loop-player's uuid%} to {_time}
+                                                    delete {bedfight.start::%loop-player's uuid%}
+
+
+
+                                                    if {bedfight.besttime::%loop-player's uuid%} is not set:
+
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+
+
+
+                                                    else if {_time} < {bedfight.besttime::%loop-player's uuid%}:
+
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+
+                                                    loop {bridgeblocks::%loop-player's uuid%::*}:
+
+                                                        set block at loop-value-2 to air
+
+                                                    delete {bridgeblocks::%loop-player's uuid%::*}
+
+
+
+                                                    set {bedfight.sessionstreak::%loop-player's uuid%} to {bedfight.streak::%loop-player's uuid%}
+
+                                                    set {bedfight.sessionname::%loop-player's uuid%} to loop-player's name
+
+
+
+                                                    send title "&a&l%{_time}%" with subtitle "&bReturned your side" to loop-player
+
+                                                    play sound "LEVEL_UP" with volume 1 and pitch 1.2 to loop-player
+
+                                                    
+
+
+
+                    else if {bedfight.team.%loop-player's uuid%} is "blue":
+
+
+
+                        set {_l} to location of loop-player
+
+
+
+    #
+
+    # RED SIDE (Completed)
+
+    #
+
+                        set {_p1} to {bedfight.redfinish.1}
+
+                        set {_p2} to {bedfight.redfinish.2}
+
+
+
+                        set {_minX} to x-coordinate of {_p1}
+
+                        set {_maxX} to x-coordinate of {_p2}
+
+                        if {_minX} > {_maxX}:
+
+                            set {_temp} to {_minX}
+
+                            set {_minX} to {_maxX}
+
+                            set {_maxX} to {_temp}
+
+
+
+                        set {_minY} to y-coordinate of {_p1}
+
+                        set {_maxY} to y-coordinate of {_p2}
+
+                        if {_minY} > {_maxY}:
+
+                            set {_temp} to {_minY}
+
+                            set {_minY} to {_maxY}
+
+                            set {_maxY} to {_temp}
+
+
+
+                        set {_minZ} to z-coordinate of {_p1}
+
+                        set {_maxZ} to z-coordinate of {_p2}
+
+                        if {_minZ} > {_maxZ}:
+
+                            set {_temp} to {_minZ}
+
+                            set {_minZ} to {_maxZ}
+
+                            set {_maxZ} to {_temp}
+
+
+
+                        if x-coordinate of {_l} >= {_minX}:
+
+                            if x-coordinate of {_l} <= {_maxX}:
+
+                                if y-coordinate of {_l} >= {_minY}:
+
+                                    if y-coordinate of {_l} <= {_maxY}:
+
+                                        if z-coordinate of {_l} >= {_minZ}:
+
+                                            if z-coordinate of {_l} <= {_maxZ}:
+
+                                                if {bedfight.finished::%loop-player's uuid%} is not "red":
+
+                                                    set {bedfight.finished::%loop-player's uuid%} to "red"
+
+                                                    set {bedfight.blocks::%loop-player's uuid%} to 0
+
+                                                    set {_time} to difference between now and {bedfight.start::%loop-player's uuid%}
+                                                    set {bedfight.sessiontime::%loop-player's uuid%} to {_time}
+                                                    delete {bedfight.start::%loop-player's uuid%}
+
+
+
+                                                    if {bedfight.besttime::%loop-player's uuid%} is not set:
+
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+
+
+
+                                                    else if {_time} < {bedfight.besttime::%loop-player's uuid%}:
+
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+
+                                                    loop {bridgeblocks::%loop-player's uuid%::*}:
+
+                                                        set block at loop-value-2 to air
+
+                                                    delete {bridgeblocks::%loop-player's uuid%::*}
+
+
+
+                                                    set {bedfight.sessionstreak::%loop-player's uuid%} to {bedfight.streak::%loop-player's uuid%}
+
+                                                    set {bedfight.sessionname::%loop-player's uuid%} to loop-player's name
+
+
+
+                                                    send title "&a&l%{_time}%" with subtitle "&bReached the other side" to loop-player
+
+                                                    play sound "LEVEL_UP" with volume 1 and pitch 1.2 to loop-player
+
+
+
+    #
+
+    # BLUE SIDE (Returned)
+
+    #
+
+                        set {_p1} to {bedfight.bluefinish.1}
+
+                        set {_p2} to {bedfight.bluefinish.2}
+
+
+
+                        set {_minX} to x-coordinate of {_p1}
+
+                        set {_maxX} to x-coordinate of {_p2}
+
+                        if {_minX} > {_maxX}:
+
+                            set {_temp} to {_minX}
+
+                            set {_minX} to {_maxX}
+
+                            set {_maxX} to {_temp}
+
+
+
+                        set {_minY} to y-coordinate of {_p1}
+
+                        set {_maxY} to y-coordinate of {_p2}
+
+                        if {_minY} > {_maxY}:
+
+                            set {_temp} to {_minY}
+
+                            set {_minY} to {_maxY}
+
+                            set {_maxY} to {_temp}
+
+
+
+                        set {_minZ} to z-coordinate of {_p1}
+
+                        set {_maxZ} to z-coordinate of {_p2}
+
+                        if {_minZ} > {_maxZ}:
+
+                            set {_temp} to {_minZ}
+
+                            set {_minZ} to {_maxZ}
+
+                            set {_maxZ} to {_temp}
+
+
+
+                        if x-coordinate of {_l} >= {_minX}:
+
+                            if x-coordinate of {_l} <= {_maxX}:
+
+                                if y-coordinate of {_l} >= {_minY}:
+
+                                    if y-coordinate of {_l} <= {_maxY}:
+
+                                        if z-coordinate of {_l} >= {_minZ}:
+
+                                            if z-coordinate of {_l} <= {_maxZ}:
+
+                                                if {bedfight.finished::%loop-player's uuid%} is "red":
+
+                                                    set {bedfight.finished::%loop-player's uuid%} to "blue"
+
+                                                    set {bedfight.blocks::%loop-player's uuid%} to 0
+
+                                                    set {_time} to difference between now and {bedfight.start::%loop-player's uuid%}
+                                                    set {bedfight.sessiontime::%loop-player's uuid%} to {_time}
+                                                    delete {bedfight.start::%loop-player's uuid%}
+
+
+
+                                                    if {bedfight.besttime::%loop-player's uuid%} is not set:
+
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+
+
+
+                                                    else if {_time} < {bedfight.besttime::%loop-player's uuid%}:
+
+                                                        set {bedfight.besttime::%loop-player's uuid%} to {_time}
+
+                                                    loop {bridgeblocks::%loop-player's uuid%::*}:
+
+                                                        set block at loop-value-2 to air
+
+                                                    delete {bridgeblocks::%loop-player's uuid%::*}
+
+
+
+                                                    set {bedfight.sessionstreak::%loop-player's uuid%} to {bedfight.streak::%loop-player's uuid%}
+
+                                                    set {bedfight.sessionname::%loop-player's uuid%} to loop-player's name
+
+
+
+                                                    send title "&a&l%{_time}%" with subtitle "&bReturned to your side" to loop-player
+
+                                                    play sound "LEVEL_UP" with volume 1 and pitch 1.2 to loop-player
+
+
+
+            if {voidcooldown::%loop-player's uuid%} is not set:
+
+            
+
+                if {bedfight.toggle.%loop-player's uuid%} is 2:
+
+                    set {bedfight.blocks::%loop-player's uuid%} to 0
+
+                
+
+
+
+                if y-coordinate of loop-player <= {@void-height}:
+
+
+
+                    set {voidcooldown::%loop-player's uuid%} to true
+
+                    
+
+                    set {bedfight.toggle.%loop-player's uuid%} to 1
+
+                    
+
+
+
+                    #
+
+                    # Remove placed bridge
+
+                    #
+
+                    loop {bridgeblocks::%loop-player's uuid%::*}:
+
+                        set block at loop-value-2 to air
+
+
+
+                    delete {bridgeblocks::%loop-player's uuid%::*}
+
+
+
+                    #
+
+                    # Reset block counter
+
+                    #
+
+                    delete {bedfight.finished::%loop-player's uuid%}
+
+                    delete {bedfight.start::%loop-player's uuid%}
+                    delete {bedfight.sessiontime::%loop-player's uuid%}
+                    delete {bedfight.sessionname::%loop-player's uuid%}
+
+
+
+                    #
+
+                    # Teleport back
+
+                    #
+
+                    if {bedfight.team.%loop-player's uuid%} is "red":
+
+                        set {_spawn} to random element out of {bedfight.redspawns::*}
+
+                        teleport loop-player to {_spawn}
+
+                    else:
+
+                        set {_spawn} to random element out of {bedfight.bluespawns::*}
+
+                        teleport loop-player to {_spawn}
+
+
+
+                    #
+
+                    # Restore inventory
+
+                    #
+
+                    clear loop-player's inventory
+
+
+
+                    if {bedfight.team.%loop-player's uuid%} is "red":
+
+                        set slot 0 of loop-player to 64 red wool
+
+                    else:
+
+                        set slot 0 of loop-player to 64 blue wool
+
+                    set slot 1 of loop-player to shears named "&f&lShears"
+
+                    if {bedfight.toggle.%loop-player's uuid%} is 2:
+
+                        set slot 3 of loop-player to stick named "&c&lSwitch to Clutch"
+
+                    else:
+
+                        set slot 3 of loop-player to stick named "&c&lSwitch to Clutch"
+
+                    set slot 4 of loop-player to paper named "&e&lSwitch Teams"
+
+                    set slot 8 of loop-player to red dye named "&c&lReturn to FastBuilder"
+
+
+
+                    set food level of loop-player to 20
+
+
+
+                    wait 5 ticks
+
+                    delete {voidcooldown::%loop-player's uuid%}
+
+                    set {bedfight.blocks::%loop-player's uuid%} to 0
+
+
+
+#
+
+# ===========================
+
+#      KEEP ITEMS
+
+# ===========================
+
+#
+
+
+
+every 2 ticks:
+
+    loop all players:
+
+
+
+        if loop-player's world is world("{@world}"):
+
+
+
+            #
+
+            # Wool
+
+            #
+
+            if {bedfight.team.%loop-player's uuid%} is "red":
+
+                if amount of red wool in loop-player's inventory < 64:
+
+                    set slot 0 of loop-player to 64 red wool
+
+
+
+            else if {bedfight.team.%loop-player's uuid%} is "blue":
+
+                if amount of blue wool in loop-player's inventory < 64:
+
+                    set slot 0 of loop-player to 64 blue wool
+
+
+
+            #
+
+            # Reset item
+
+            #
+
+            if slot 3 of loop-player is not stick:
+
+                set slot 3 of loop-player to stick named "&c&lBack To Bridging"
+
+            if slot 4 of loop-player is not paper:
+
+                set slot 4 of loop-player to paper named "&e&lSwitch Teams"
+
+            if slot 8 of loop-player is not red dye:
+
+                set slot 8 of loop-player to red dye named "&c&lReturn to FastBuilder"
+
+            if slot 1 of loop-player is not shears:
+
+                set slot 1 of loop-player to shears named "&f&lShears"
+
+            set food level of loop-player to 20
+
+
+
+#
+
+# ===========================
+
+#     DISABLE HUNGER
+
+# ===========================
+
+#
+
+
+
+on food level change:
+
+    if player's world is world("{@world}"):
+
+        cancel event
+
+        set food level of player to 20
+
+
+
+
+
+command /leavebedfight:
+
+    trigger:
+
+        loop {bridgeblocks::%player's uuid%::*}:
+
+            set block at loop-value to air
+
+
+
+        delete {bridgeblocks::%player's uuid%::*}
+
+        delete {bedfight.team.%player's uuid%}
+
+        delete {voidcooldown::%player's uuid%}
+
+        delete {bedfight.toggle.%player's uuid%}
+
+        delete {bedfight.blocks::%player's uuid%}
+
+
+        delete {bedfight.start::%player's uuid%}
+        delete {bedfight.sessiontime::%player's uuid%}
+
+        delete {bedfight.sessionstreak::%player's uuid%}
+
+        delete {bedfight.sessionname::%player's uuid%}
+
+        clear player's inventory
+
+
+
+on right click:
+
+    if player's world is not world("{@world}"):
+
+        stop
+
+
+
+    if player's tool is paper:
+
+        cancel event
+
+
+
+        if {bedfight.switchcooldown::%player's uuid%} is set:
+
+            send action bar "&cPlease wait before switching teams again!" to player
+
+            stop
+
+
+
+        set {bedfight.switchcooldown::%player's uuid%} to true
+
+
+
+        execute player command "switchteams"
+
+
+
+        wait 3 seconds
+
+        delete {bedfight.switchcooldown::%player's uuid%}
+
+
+
+
+
+command /switchteams:
+
+    trigger:
+
+
+
+        if player's world is not world("{@world}"):
+
+            send "&cYou must be in BedFight."
+
+            stop
+
+
+
+        if {bedfight.team.%player's uuid%} is not set:
+
+            send "&cYou are not on a team."
+
+            stop
+
+
+
+        # Remove placed bridge
+
+        loop {bridgeblocks::%player's uuid%::*}:
+
+            set block at loop-value to air
+
+        delete {bridgeblocks::%player's uuid%::*}
+
+        delete {bedfight.finished::%player's uuid%}
+
+        delete {bedfight.streak::%player's uuid%}
+
+        set {bedfight.blocks::%player's uuid%} to 0
+        delete {bedfight.start::%player's uuid%}
+        delete {bedfight.sessiontime::%player's uuid%}
+
+
+
+        if {bedfight.team.%player's uuid%} is "red":
+
+
+
+            set {bedfight.team.%player's uuid%} to "blue"
+
+            teleport player to {bedfight.spawn2}
+
+
+
+            set slot 0 of player to 64 blue wool
+
+
+
+            send "&9You switched to the Blue Team!"
+
+
+
+        else:
+
+
+
+            set {bedfight.team.%player's uuid%} to "red"
+
+            teleport player to {bedfight.spawn1}
+
+
+
+            set slot 0 of player to 64 red wool
+
+
+
+            send "&cYou switched to the Red Team!"
+
+
+
+        set food level of player to 20
+
+
+
+on damage:
+
+
+
+    if victim is not a player:
+
+        stop
+
+
+
+    if victim's world is not world("{@world}"):
+
+        stop
+
+
+
+    # Disable fall damage
+
+    if damage cause is fall:
+
+        cancel event
+
+        stop
+
+    # Disable suffocation
+
+    if damage cause is suffocation:
+
+        cancel event
+
+        stop
+
+
+
+    # Handle PvP
+
+    if attacker is a player:
+
+
+
+        # Don't let teammates hit each other
+
+        if {bedfight.team.%attacker's uuid%} = {bedfight.team.%victim's uuid%}:
+
+            cancel event
+
+            send action bar "&cYou can't hit your teammate!" to attacker
+
+            stop
+
+
+
+        # Different teams = PvP allowed
+
+        stop
+
+
+
+on right click:
+
+    if player's world is not world("{@world}"):
+
+        stop
+
+
+
+    if player's tool is red dye:
+
+        cancel event
+
+
+
+        execute player command "leavebedfight"
+
+        wait 1 tick
+
+        execute player command "fb join short"
+
+
+
+on drop:
+
+    if player's world is world("{@world}"):
+
+        if {bedfight.team.%player's uuid%} is set:
+
+            cancel event
+
+        
+
+command /clearredspawns:
+
+    permission: op
+
+    trigger:
+
+        delete {bedfight.redspawns::*}
+
+        send "&cCleared all red spawns."
+
+
+
+command /clearbluespawns:
+
+    permission: op
+
+    trigger:
+
+        delete {bedfight.bluespawns::*}
+
+        send "&cCleared all blue spawns."
+
+        
+
+every 1 second:
+
+
+
+    delete {bedfight.top1.name}
+
+    delete {bedfight.top1.score}
+
+    delete {bedfight.top2.name}
+
+    delete {bedfight.top2.score}
+
+    delete {bedfight.top3.name}
+
+    delete {bedfight.top3.score}
+
+
+
+    set {_top1} to 0
+
+    set {_top2} to 0
+
+    set {_top3} to 0
+
+
+
+    loop all players:
+
+        if loop-player's world is world("{@world}"):
+
+            if {bedfight.team.%loop-player's uuid%} is set:
+
+
+
+                set {_score} to {bedfight.sessiontime::%loop-player's uuid%}
+
+                if {_score} is not set:
+
+                    set {_score} to 0
+
+
+
+                if {_top1} is not set or {_score} < {_top1}:
+
+                    set {_top3} to {_top2}
+
+                    set {bedfight.top3.score} to {bedfight.top2.score}
+
+                    set {bedfight.top3.name} to {bedfight.top2.name}
+
+
+
+                    set {_top2} to {_top1}
+
+                    set {bedfight.top2.score} to {bedfight.top1.score}
+
+                    set {bedfight.top2.name} to {bedfight.top1.name}
+
+
+
+                    set {_top1} to {_score}
+
+                    set {bedfight.top1.score} to {_score}
+
+                    set {bedfight.top1.name} to loop-player's name
+
+
+
+                else if {_top2} is not set or {_score} < {_top2}:
+
+                    set {_top3} to {_top2}
+
+                    set {bedfight.top3.score} to {bedfight.top2.score}
+
+                    set {bedfight.top3.name} to {bedfight.top2.name}
+
+
+
+                    set {_top2} to {_score}
+
+                    set {bedfight.top2.score} to {_score}
+
+                    set {bedfight.top2.name} to loop-player's name
+
+
+
+                else if {_top3} is not set or {_score} < {_top3}:
+
+                    set {_top3} to {_score}
+
+                    set {bedfight.top3.score} to {_score}
+
+                    set {bedfight.top3.name} to loop-player's name
+
+                    
+
+    
+
+
+
+            
+
+            
+
+command /debuglb:
+
+    trigger:
+
+        send "TOP1: %{bedfight.top1.name}% %{bedfight.top1.score}%"
+
+        send "TOP2: %{bedfight.top2.name}% %{bedfight.top2.score}%"
+
+        send "TOP3: %{bedfight.top3.name}% %{bedfight.top3.score}%"
+
+       
+
+command /debugstreak:
+
+    trigger:
+
+        send "UUID: %player's uuid%"
+
+        send "Current: %{bedfight.streak::%player's uuid%}%"
+
+        send "Best: %{bedfight.beststreak::%player's uuid%}%"
