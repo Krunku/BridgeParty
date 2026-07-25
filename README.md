@@ -1,4 +1,8 @@
 #THIS SKRIPT IS STILL IN THE WORKS, THIS IS A VERY EARLY VERSION.
+There are currently 8 errors when doing /sk reload bridgeparty:
+these errors are for a system I was working on and stopped mid way, and do not conflict with the actualy bridge party in any way.
+
+
 
 # Bridge Party Skript (1.8)
 
@@ -20,7 +24,9 @@ This project includes:
 ### Dependencies
 - Skript **2.5**
 - skRayFall
-- SkLeaf
+- SkLeaf or Sk Mirror
+- Bedclutch by hi12167pies: https://www.spigotmc.org/resources/bedclutch.102543/
+
 
 ---
 
@@ -34,7 +40,28 @@ This project includes:
 4. Reload Skript:
    /sk reload bridgeparty
    /sk reload bridgepartyplaceholder
-   or simply restart the server.
+
+#SETUP AND COMMANDS
+RED FINISH MUST BE ON THE BLUE SIDE
+BLUE FINISH MUST BE ON THE RED SIDE
+SET THE SPAWN IN MULTIPLE AREAS TO CREATE MORE THAN ONE SPAWN OPTION
+CLEAR THE SPAWNS FOR A SIDE IF YOU WANT TO CHANGE THE SPAWN
+FOR CLUTCH MODE USE THE BED CLUTCH PLUGIN FROM HI PIES, AND SET 1 Map TO 1 SIDE AND THE 2nd ONE TO THE OTHER SIDE:
+
+COMMANDS:
+
+/bedclutch <join/leave> <map>
+/bedclutchmaps <setspawn/delete> <map>
+| `/setredspawn` | Set the Red team's spawn location. |
+| `/setbluespawn` | Set the Blue team's spawn location. |
+| `/setredfinish1` | Set the first Red finish region corner. |
+| `/setredfinish2` | Set the second Red finish region corner. |
+| `/setbluefinish1` | Set the first Blue finish region corner. |
+| `/setbluefinish2` | Set the second Blue finish region corner. |
+| `/switchteams` | Swap the teams of players in the current match. |
+| `/clearredspawns` | Clear all saved Red spawn locations. |
+| `/clearbluespawns` | Clear all saved Blue spawn locations. |
+
 
 ---
 
