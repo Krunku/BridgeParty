@@ -1,3 +1,5 @@
+#THIS SKRIPT IS STILL IN THE WORKS, THIS IS A VERY EARLY VERSION.
+
 # Bridge Party Skript (1.8)
 
 A fully playable **Bridge Party** minigame made entirely in **Skript** for Minecraft **1.8.x**.
