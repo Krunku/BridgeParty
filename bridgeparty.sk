@@ -10,13 +10,9 @@ options:
 
 #
 
-# ===========================
 
 #      SET SPAWNS
 
-# ===========================
-
-#
 
 
 
@@ -96,15 +92,9 @@ command /setbluefinish2:
 
 
 
-#
-
-# ===========================
 
 #      JOIN COMMAND
 
-# ===========================
-
-#
 
 
 
@@ -221,15 +211,8 @@ command /joinbedfight:
 
 
 
-#
-
-# ===========================
 
 #      CLEANUP
-
-# ===========================
-
-#
 
 
 
@@ -257,15 +240,8 @@ on quit:
 
 
 
-#
-
-# ===========================
 
 #      BLOCK PLACING
-
-# ===========================
-
-#
 
 
 
@@ -305,15 +281,8 @@ on place:
 
 
 
-#
-
-# ===========================
 
 #   PREVENT BLOCK BREAKING
-
-# ===========================
-
-#
 
 
 
@@ -332,20 +301,6 @@ on break:
         cancel event
 
         stop
-
-
-
-    # Allow breaking practice blocks
-
-        if event-block is red wool
-        or event-block is blue wool
-        or event-block is end stone
-        or event-block is wood
-
-    		# Allowed
-        else:
-            cancel event
-            stop
 
 
 
@@ -381,15 +336,9 @@ on break:
 
 
 
-#
-
-# ===========================
 
 #      RESET ITEM
 
-# ===========================
-
-#
 
 
 
@@ -485,15 +434,8 @@ on right click:
 
 
 
-#
-
-# ===========================
 
 #      VOID RESET
-
-# ===========================
-
-#
 
 
 
@@ -736,11 +678,9 @@ every 1 tick:
 
 
 
-    #
 
     # RED SIDE (Completed)
 
-    #
 
                         set {_p1} to {bedfight.redfinish.1}
 
@@ -844,11 +784,8 @@ every 1 tick:
 
 
 
-    #
 
     # BLUE SIDE (Returned)
-
-    #
 
                         set {_p1} to {bedfight.bluefinish.1}
 
@@ -978,11 +915,9 @@ every 1 tick:
 
 
 
-                    #
-
                     # Remove placed bridge
 
-                    #
+ 
 
                     loop {bridgeblocks::%loop-player's uuid%::*}:
 
@@ -1008,11 +943,10 @@ every 1 tick:
 
 
 
-                    #
-
+                    
                     # Teleport back
 
-                    #
+    
 
                     if {bedfight.team.%loop-player's uuid%} is "red":
 
@@ -1028,11 +962,8 @@ every 1 tick:
 
 
 
-                    #
 
                     # Restore inventory
-
-                    #
 
                     clear loop-player's inventory
 
@@ -1074,15 +1005,8 @@ every 1 tick:
 
 
 
-#
-
-# ===========================
 
 #      KEEP ITEMS
-
-# ===========================
-
-#
 
 
 
@@ -1118,11 +1042,10 @@ every 2 ticks:
 
 
 
-            #
+
 
             # Reset item
 
-            #
 
             if slot 3 of loop-player is not stick:
 
@@ -1144,15 +1067,9 @@ every 2 ticks:
 
 
 
-#
-
-# ===========================
 
 #     DISABLE HUNGER
 
-# ===========================
-
-#
 
 
 
