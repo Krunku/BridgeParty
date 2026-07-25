@@ -1,4 +1,5 @@
 #THIS SKRIPT IS STILL IN THE WORKS, THIS IS A VERY EARLY VERSION.
+
 There are currently 8 errors when doing /sk reload bridgeparty:
 these errors are for a system I was working on and stopped mid way, and do not conflict with the actualy bridge party in any way.
 
